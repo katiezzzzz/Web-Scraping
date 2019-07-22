@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 
+#change to lower
 keywords = ["santander", "Amadeus", "Banco Bilbao Vizcaya", "BBVA", "Iberdrola", "Inditex", "Industria de Diseno Textil", "Telefonica"]
 
 class WebClass:
@@ -15,7 +16,7 @@ class WebClass:
         newrequest = requests.get(self.URL)
         new = BeautifulSoup(newrequest.content, "html.parser").get_text().lower()
 
-        if new != self.cache:
+        if new == self.cache:
             print("No new updates")
         else:
             print("New updates")
