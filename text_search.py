@@ -19,8 +19,15 @@ def keyword(arg,keyword):
         pass
     return
 
-keywords_spanish = ['Santander','Amadeus','Banco Bilbao Vizcaya','BBVA','Iberdrola','Inditex','Industria de Diseno Textil','Telefonica']
-keywords_rest = ['Dividend','Amount','AGM','Annual General Meeting','Ex-dividend','Ex-dividend Date','Payment Date','Results']
+keywords_spanish = ['Santander','Amadeus','Banco Bilbao Vizcaya','BBVA','Iberdrola','Inditex',
+                    'Industria de Diseno Textil','Telefonica','SANTANDER','AMADEUS','BANCO BILBAO VIZCAVA',
+                    'IBERDROLA','INDITEX','INDUSTRIA DE DISENO TEXTIL','TELEFONICA','santander','amadeus',
+                    'banco bilbao vizcava','bbva','iberdrola','inditex','industria de diseno textil',
+                    'telefonica']
+keywords_rest = ['Dividend','Amount','AGM','Annual General Meeting','Ex-dividend','Ex-dividend Date','Payment Date',
+                 'Results','DIVIDEND','AMOUNT','ANNUAL GENERAL MEETING','EX-DIVIDEND','EX-DIVIDEND DATE',
+                 'PAYMENT DATE','RESULTS','dividend','amount','agm','annual general meeting','ex-dividend','ex-dividend date',
+                 'payment date','results']
 
 for key in keywords_spanish:
     keyword(getText('https://www.cnmv.es/portal/HR/HRAldia.aspx?lang=en'),key)
