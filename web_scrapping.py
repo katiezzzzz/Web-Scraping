@@ -78,19 +78,6 @@ class WebClass:
                             self.new_line.append(line)
         self.cache = new
 
-'''
-    def alert(self):
-        for line in self.new_line:
-            if line in self.old_line:
-                pass
-            else:
-                for word in self.keywords:
-                    if word in line:
-                        print(word)
-                        print(line)
-                        print(self.URL)
-'''
-
     def alert(self):
         self.new_line.reverse
         for line in self.old_line:
