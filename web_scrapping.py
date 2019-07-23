@@ -10,10 +10,10 @@ then update every 5 min
 from bs4 import BeautifulSoup
 import requests
 import threading
+import time
 import os.path
 import pickle
-import time
-import pandas as pd
+import smtplib
 
 # lists of keywords and websites
 keywords_spanish = ['santander','amadeus','banco bilbao vizcava','bbva','iberdrola','inditex',
@@ -55,8 +55,8 @@ class WebClass:
 
     def initializeCache(self):
         # extract text from the website and convert all to lower case
-        if os.path.exists(self.companypage + '.p'):
-            self.cache = pickle.load(open((self.companypage + '.p'), 'rb'))
+        if os.path.exists('cache' + str(self.companypage) + '.p'):
+            self.cache = pickle.load(open(('cache' + str(self.companypage) + '.p'), 'rb'))
         else:
             soup = BeautifulSoup(requests.get(self.URL).text, 'html.parser')
             self.cache = soup.get_text().lower()
@@ -64,7 +64,7 @@ class WebClass:
             self.cache = self.cache.split('\n')
             # generate initial cache file
             # check if the text file can be re-written
-            pickle.dump(self.cache, open((self.companypage + '.p'), 'wb'))
+            pickle.dump(self.cache,open(('cache' + str(self.companypage) + '.p'), 'wb'))
 
     def generateCache(self):
         self.old_line = []
@@ -73,7 +73,7 @@ class WebClass:
         for line in self.cache:
             for word in self.keywords:
                 if word in line:
-                    self.old_line.append(line+old_line)
+                    self.old_line.append(line + old_line)
             old_line = line
 
     def compare(self):
@@ -91,10 +91,10 @@ class WebClass:
             for line in new:
                 for word in self.keywords:
                     if word in line:
-                        self.new_line.append(line+new_line)
+                        self.new_line.append(line + new_line)
                 new_line = line
         self.cache = new
-        pickle.dump(self.cache, open((self.companypage + '.p'), 'wb'))
+        pickle.dump(self.cache,open(('cache' + str(self.companypage) + '.p'), 'wb'))
 
     def alert(self):
         self.new_line.reverse()
@@ -107,13 +107,20 @@ class WebClass:
         for line in self.new_line:
             print(line)
 
-# initialize (company,URL,page,keywords)
-example = WebClass("CNMV", website_spanish[0], "PublicStatements", keywords_spanish)
+    def sendEmail(self):
+        mailserver = smtplib.SMTP('smtp.office365.com', 587)
+        mailserver.ehlo()
+        mailserver.starttls()
+        mailserver.login('Katie.Zeng@mako.com', 'password')
+        mailserver.sendmail('Katie.Zeng@mako.com', 'Jane.Jiang@company.com', 'python email')
+        mailserver.quit()
+
+# initialize
+example = WebClass(website_spanish[0], keywords_spanish, 1)
 example.initializeCache()
 example.generateCache()
 
 # use self.compare to update every 5 min
-
 class RepeatEvery(threading.Thread):
     def __init__(self, interval, func, *args, **kwargs):
         threading.Thread.__init__(self)
@@ -134,7 +141,6 @@ def update(arg):
     arg.alert()
     arg.generateCache()
 
-thread = RepeatEvery(10, update, example)
+thread = RepeatEvery(300, update, example)
 print("starting")
 thread.start()
-
