@@ -1,7 +1,8 @@
 '''
 create a class with the following functions:
 1. compare - compare the updated website to original text file
-2. keyword - search for keywords in the compared file and send alerts
+2, generateCache - generate chache files and save them outside the python file
+3. alert - search for keywords in the compared file and send alerts
 then update every 5 min
 '''
 
