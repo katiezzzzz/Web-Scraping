@@ -12,6 +12,8 @@ import requests
 import threading
 import os.path
 import pickle
+import time
+import pandas as pd
 
 # lists of keywords and websites
 keywords_spanish = ['santander','amadeus','banco bilbao vizcava','bbva','iberdrola','inditex',
@@ -44,16 +46,17 @@ websites_rest = ['https://www.societegenerale.com/en/investors',
 
 class WebClass:
 
-    def __init__(self,URL,keywords,cachenumber):
-        # cache number is unique for each website
-        self.cachenumber = cachenumber
+    def __init__(self,company,URL,page,keywords):
+        #cache companypage is unique for each website
+        self.company = company
+        self.companypage = (company + page)
         self.URL = URL
         self.keywords = keywords
 
     def initializeCache(self):
         # extract text from the website and convert all to lower case
-        if os.path.exists('cache' + str(self.cachenumber) + '.p'):
-            self.cache = pickle.load(open(('cache' + str(self.cachenumber) + '.p'), 'rb'))
+        if os.path.exists(self.companypage + '.p'):
+            self.cache = pickle.load(open((self.companypage + '.p'), 'rb'))
         else:
             soup = BeautifulSoup(requests.get(self.URL).text, 'html.parser')
             self.cache = soup.get_text().lower()
@@ -61,7 +64,7 @@ class WebClass:
             self.cache = self.cache.split('\n')
             # generate initial cache file
             # check if the text file can be re-written
-            pickle.dump(self.cache,open(('cache' + str(self.cachenumber) + '.p'), 'wb'))
+            pickle.dump(self.cache, open((self.companypage + '.p'), 'wb'))
 
     def generateCache(self):
         self.old_line = []
@@ -93,7 +96,7 @@ class WebClass:
                         self.new_line.append(new_line)
                 new_line = line
         self.cache = new
-        pickle.dump(self.cache,open(('cache' + str(self.cachenumber) + '.p'), 'wb'))
+        pickle.dump(self.cache, open((self.companypage + '.p'), 'wb'))
 
     def alert(self):
         self.new_line.reverse()
@@ -106,22 +109,8 @@ class WebClass:
         for line in self.new_line:
             print(line)
 
-    '''
-        def alert(self):
-            for line in self.new_line:
-                if line in self.old_line:
-                    pass
-                else:
-                    for word in self.keywords:
-                        if word in line:
-                            print(word)
-                            print(line)
-                            print(self.URL)
-    '''
-
-
-# initialize
-example = WebClass(website_spanish[0], keywords_spanish, 1)
+# initialize (company,URL,page,keywords)
+example = WebClass("CNMV", website_spanish[0], "PublicStatements", keywords_spanish)
 example.initializeCache()
 example.generateCache()
 
