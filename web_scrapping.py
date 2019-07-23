@@ -1,7 +1,7 @@
 '''
 create a class with the following functions:
 1. compare - compare the updated website to original text file
-2, generateCache - generate chache files and save them outside the python file
+2, generateCache - generate cache files and save them outside the python file
 3. alert - search for keywords in the compared file and send alerts
 then update every 5 min
 '''
@@ -15,6 +15,7 @@ keywords_spanish = ['santander','amadeus','banco bilbao vizcava','bbva','iberdro
                     'industria de diseno textil','telefonica']
 keywords_rest = ['dividend','amount','agm','annual general meeting','ex-dividend','ex-dividend date',
                  'payment date','results']
+
 website_spanish = ['https://www.cnmv.es/portal/HR/HRAldia.aspx?lang=en']
 websites_rest = ['https://www.societegenerale.com/en/investors',
                 'https://www.societegenerale.com/en/measuring-our-performance/information-and-publications/dividend',
@@ -51,12 +52,12 @@ class WebClass:
 
     def generateCache(self):
         self.old_line = []
+        self.cacheSplit = self.cache.split('\n')
         for word in self.keywords:
             if word in self.cache:
-                self.cacheSplit = self.cache.split('\n')
                 for line in self.cacheSplit:
                     if word in line:
-                        self.old_line = self.old_line.append(line)
+                        self.old_line.append(line)
 
     def compare(self):
         self.new_line = []
@@ -69,14 +70,15 @@ class WebClass:
             print("No new updates")
         else:
             print("New updates")
+            newSplit = new.split('\n')
             for word in self.keywords:
                 if word in new:
-                    newSplit = new.split('\n')
                     for line in newSplit:
                         if word in line:
-                            self.new_line = self.new_line.append(line)
+                            self.new_line.append(line)
         self.cache = new
 
+'''
     def alert(self):
         for line in self.new_line:
             if line in self.old_line:
@@ -84,9 +86,21 @@ class WebClass:
             else:
                 for word in self.keywords:
                     if word in line:
-                        print('word')
+                        print(word)
                         print(line)
                         print(self.URL)
+'''
+
+    def alert(self):
+        self.new_line.reverse
+        for line in self.old_line:
+            if line in self.new_line:
+                self.new_line.remove(line)
+        if self.new_line:
+            self.new_line.reverse
+            print (self.URL)
+        for line in self.new_line:
+            print(line)
 
 
 # initialize
