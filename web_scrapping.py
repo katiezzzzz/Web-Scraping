@@ -14,6 +14,7 @@ import time
 import os.path
 import pickle
 import smtplib
+import csv
 
 # lists of keywords and websites
 keywords_spanish = ['santander','amadeus','banco bilbao vizcava','bbva','iberdrola','inditex',
@@ -46,10 +47,10 @@ websites_rest = ['https://www.societegenerale.com/en/investors',
 
 class WebClass:
 
-    def __init__(self,company,URL,page,keywords):
+    def __init__(self,URL, keywords, company, page):
         #cache companypage is unique for each website
         self.company = company
-        self.companypage = (company + page)
+        self.companypage = (company + " " + page)
         self.URL = URL
         self.keywords = keywords
 
@@ -68,8 +69,7 @@ class WebClass:
 
     def generateCache(self):
         self.old_line = []
-        old_line = None
-        #self.cacheSplit = self.cache.split('\n')
+        old_line = ""
         for line in self.cache:
             for word in self.keywords:
                 if word in line:
@@ -84,9 +84,9 @@ class WebClass:
         new = new.replace('\n\n', ' ')
         new = new.split('\n')
         if new == self.cache:
-            print("No new updates")
+            print("No new updates at " + str(self.companypage))
         else:
-            print("New updates")
+            print("New updates at " + str(self.companypage))
             new_line = None
             for line in new:
                 for word in self.keywords:
@@ -94,7 +94,7 @@ class WebClass:
                         self.new_line.append(line + new_line)
                 new_line = line
         self.cache = new
-        pickle.dump(self.cache,open(('cache' + str(self.companypage) + '.p'), 'wb'))
+        pickle.dump(self.cache, open(('cache' + str(self.companypage) + '.p'), 'wb'))
 
     def alert(self):
         self.new_line.reverse()
@@ -115,12 +115,7 @@ class WebClass:
         mailserver.sendmail('Katie.Zeng@mako.com', 'Jane.Jiang@company.com', 'python email')
         mailserver.quit()
 
-# initialize
-example = WebClass(website_spanish[0], keywords_spanish, 1)
-example.initializeCache()
-example.generateCache()
-
-# use self.compare to update every 5 min
+# timer
 class RepeatEvery(threading.Thread):
     def __init__(self, interval, func, *args, **kwargs):
         threading.Thread.__init__(self)
@@ -136,11 +131,39 @@ class RepeatEvery(threading.Thread):
     def stop(self):
         self.runable = False
 
-def update(arg):
-    arg.compare()
-    arg.alert()
-    arg.generateCache()
+# initialize
+def update():
+    if os.path.exists('Directory.csv'):
+        with open('Directory.csv') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                company = str(row[0])
+                URL = str(row[1])
+                page = str(row[2])
+                keywords = row[3].split(",")
+                scrap = WebClass(URL, keywords_rest, company, page)
+                scrap.initializeCache()
+                scrap.generateCache()
+                scrap.compare()
+                scrap.alert()
+    else:
+        print("Please install manual.")
+'''
+# function used to update
+def update():
+    with open('Directory.csv') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            company = str(row[0])
+            URL = str(row[1])
+            page = str(row[2])
+            #keywords = row[3]
+            scrap = WebClass(URL, keywords_spanish, company, page)
+            scrap.compare()
+            scrap.alert()
+            scrap.generateCache()
+'''
 
-thread = RepeatEvery(300, update, example)
+thread = RepeatEvery(300, update)
 print("starting")
 thread.start()
