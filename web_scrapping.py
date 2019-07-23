@@ -73,8 +73,7 @@ class WebClass:
         for line in self.cache:
             for word in self.keywords:
                 if word in line:
-                    self.old_line.append(line)
-                    self.old_line.append(old_line)
+                    self.old_line.append(line+old_line)
             old_line = line
 
     def compare(self):
@@ -92,8 +91,7 @@ class WebClass:
             for line in new:
                 for word in self.keywords:
                     if word in line:
-                        self.new_line.append(line)
-                        self.new_line.append(new_line)
+                        self.new_line.append(line+new_line)
                 new_line = line
         self.cache = new
         pickle.dump(self.cache, open((self.companypage + '.p'), 'wb'))
