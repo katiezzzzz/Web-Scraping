@@ -121,7 +121,7 @@ example.generateCache()
 
 # use self.compare to update every 5 min
 def update(arg):
-    threading.Timer(300.0, update).start() # called every minute
+    threading.Timer(300.0, update).start()
     arg.compare()
     arg.alert()
     arg.generateCache()
