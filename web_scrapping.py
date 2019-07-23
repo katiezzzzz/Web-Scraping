@@ -52,8 +52,8 @@ class WebClass:
         self.old_line = []
         for word in self.keywords:
             if word in self.cache:
-                self.cache = self.cache.split('\n')
-                for line in self.cache:
+                self.cacheSplit = self.cache.split('\n')
+                for line in self.cacheSplit:
                     if word in line:
                         self.old_line = self.old_line.append(line)
 
@@ -70,8 +70,8 @@ class WebClass:
             print("New updates")
             for word in self.keywords:
                 if word in new:
-                    new = new.split('\n')
-                    for line in new:
+                    newSplit = new.split('\n')
+                    for line in newSplit:
                         if word in line:
                             self.new_line = self.new_line.append(line)
         self.cache = new
