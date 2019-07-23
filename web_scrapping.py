@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 import requests
 import threading
 import os.path
+import pickle
 
 # lists of keywords and websites
 keywords_spanish = ['santander','amadeus','banco bilbao vizcava','bbva','iberdrola','inditex',
@@ -51,22 +52,21 @@ class WebClass:
 
     def initializeCache(self):
         # extract text from the website and convert all to lower case
-        if os.path.exists('cache' + str(self.cachenumber) + '.txt'):
-            self.d = open(('cache' + str(self.cachenumber) + '.txt'), 'r')
-            self.cache = self.d.readlines()[1:]
+        if os.path.exists('cache' + str(self.cachenumber) + '.p'):
+            self.cache = pickle.load(open(('cache' + str(self.cachenumber) + '.p'), 'rb'))
         else:
             soup = BeautifulSoup(requests.get(self.URL).text, 'html.parser')
             self.cache = soup.get_text().lower()
             self.cache = self.cache.replace('\n\n', ' ')
+            self.cache = self.cache.split('\n')
             # generate initial cache file
             # check if the text file can be re-written
-            self.f = open(('cache' + str(self.cachenumber) + '.txt'), 'w+')
-            self.f.write(self.cache)
+            pickle.dump(self.cache,open(('cache' + str(self.cachenumber) + '.p'), 'wb'))
 
     def generateCache(self):
         self.old_line = []
-        self.cacheSplit = self.cache.split('\n')
-        for line in self.cacheSplit:
+        #self.cacheSplit = self.cache.split('\n')
+        for line in self.cache:
             for word in self.keywords:
                 if word in line:
                     self.old_line.append(line)
@@ -77,18 +77,17 @@ class WebClass:
         newsoup = BeautifulSoup(requests.get(self.URL).text, "html.parser")
         new = newsoup.get_text().lower()
         new = new.replace('\n\n', ' ')
+        new = new.split('\n')
         if new == self.cache:
             print("No new updates")
         else:
             print("New updates")
-            newSplit = new.split('\n')
-            for line in newSplit:
+            for line in new:
                 for word in self.keywords:
                     if word in line:
                         self.new_line.append(line)
         self.cache = new
-        self.f = open(('cache' + str(self.cachenumber) + '.txt'), 'w')
-        self.f.write(self.cache)
+        pickle.dump(self.cache,open(('cache' + str(self.cachenumber) + '.p'), 'wb'))
 
     def alert(self):
         self.new_line.reverse()
@@ -116,16 +115,24 @@ class WebClass:
 
 
 # initialize
-example = WebClass("https://www.cnmv.es/portal/HR/HRAldia.aspx?lang=en", keywords_spanish, 1)
+example = WebClass(website_spanish[0], keywords_spanish, 1)
 example.initializeCache()
 example.generateCache()
 
 # use self.compare to update every 5 min
-def update():
+def update(arg):
     threading.Timer(300.0, update).start() # called every minute
-    example.compare()
-    example.alert()
-    example.generateCache()
+    arg.compare()
+    arg.alert()
+    arg.generateCache()
 
 # need to generate alert
-update()
+update(example)
+
+n = 0
+for i in websites_rest:
+    website = WebClass(websites_rest[n],keywords_rest,n)
+    website.initializeCache()
+    website.generateCache()
+    update(website)
+    n += 1
