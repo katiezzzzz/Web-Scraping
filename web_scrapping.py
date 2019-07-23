@@ -65,11 +65,14 @@ class WebClass:
 
     def generateCache(self):
         self.old_line = []
+        old_line = None
         #self.cacheSplit = self.cache.split('\n')
         for line in self.cache:
             for word in self.keywords:
                 if word in line:
                     self.old_line.append(line)
+                    self.old_line.append(old_line)
+            old_line = line
 
     def compare(self):
         self.new_line = []
@@ -82,10 +85,13 @@ class WebClass:
             print("No new updates")
         else:
             print("New updates")
+            new_line = None
             for line in new:
                 for word in self.keywords:
                     if word in line:
                         self.new_line.append(line)
+                        self.new_line.append(new_line)
+                new_line = line
         self.cache = new
         pickle.dump(self.cache,open(('cache' + str(self.cachenumber) + '.p'), 'wb'))
 
@@ -128,11 +134,3 @@ def update(arg):
 
 # need to generate alert
 update(example)
-
-n = 0
-for i in websites_rest:
-    website = WebClass(websites_rest[n],keywords_rest,n)
-    website.initializeCache()
-    website.generateCache()
-    update(website)
-    n += 1
