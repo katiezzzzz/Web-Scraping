@@ -141,7 +141,7 @@ def update():
                 URL = str(row[1])
                 page = str(row[2])
                 keywords = row[3].split(",")
-                scrap = WebClass(URL, keywords_rest, company, page)
+                scrap = WebClass(URL, keywords, company, page)
                 scrap.initializeCache()
                 scrap.generateCache()
                 scrap.compare()
