@@ -50,14 +50,14 @@ class WebClass:
     def __init__(self,URL, keywords, company, page):
         #cache companypage is unique for each website
         self.company = company
-        self.companypage = (company + page)
+        self.companypage = (company + " " + page)
         self.URL = URL
         self.keywords = keywords
 
     def initializeCache(self):
         # extract text from the website and convert all to lower case
-        if os.path.exists(self.companypage + '.p'):
-            self.cache = pickle.load(open((self.companypage + '.p'), 'rb'))
+        if os.path.exists('cache' + str(self.companypage) + '.p'):
+            self.cache = pickle.load(open(('cache' + str(self.companypage) + '.p'), 'rb'))
         else:
             soup = BeautifulSoup(requests.get(self.URL).text, 'html.parser')
             self.cache = soup.get_text().lower()
@@ -65,7 +65,7 @@ class WebClass:
             self.cache = self.cache.split('\n')
             # generate initial cache file
             # check if the text file can be re-written
-            pickle.dump(self.cache,open(self.companypage + '.p'), 'wb'))
+            pickle.dump(self.cache,open(('cache' + str(self.companypage) + '.p'), 'wb'))
 
     def generateCache(self):
         self.old_line = []
@@ -84,17 +84,17 @@ class WebClass:
         new = new.replace('\n\n', ' ')
         new = new.split('\n')
         if new == self.cache:
-            print("No new updates at " + self.companypage)
+            print("No new updates at " + str(self.companypage))
         else:
-            print("New updates at " + self.companypage)
-            new_line = None
+            print("New updates at " + str(self.companypage))
+            new_line = ""
             for line in new:
                 for word in self.keywords:
                     if word in line:
                         self.new_line.append(line + new_line)
                 new_line = line
         self.cache = new
-        pickle.dump(self.cache, open((self.companypage + '.p'), 'wb'))
+        pickle.dump(self.cache, open(('cache ' + str(self.companypage) + '.p'), 'wb'))
 
     def alert(self):
         self.new_line.reverse()
@@ -112,20 +112,21 @@ class WebClass:
         mailserver.ehlo()
         mailserver.starttls()
         mailserver.login('Katie.Zeng@mako.com', 'password')
-        mailserver.sendmail('Katie.Zeng@mako.com', 'Jane.Jiang@mako.com', 'python email')
+        mailserver.sendmail('Katie.Zeng@mako.com', 'Jane.Jiang@company.com', 'python email')
         mailserver.quit()
 
 # timer
 class RepeatEvery(threading.Thread):
-    def __init__(self, interval, func, *args)
+    def __init__(self, interval, func, *args, **kwargs):
         threading.Thread.__init__(self)
         self.interval = interval  # seconds between calls
         self.func = func          # function to call
         self.args = args          # optional positional argument(s) for call
+        self.kwargs = kwargs      # optional keyword argument(s) for call
         self.runable = True
     def run(self):
         while self.runable:
-            self.func(*self.args)
+            self.func(*self.args, **self.kwargs)
             time.sleep(self.interval)
     def stop(self):
         self.runable = False
@@ -146,8 +147,9 @@ def update():
                 scrap.compare()
                 scrap.alert()
     else:
-        print("Please upload directory.")
+        print("Please install manual.")
 
-thread = RepeatEvery(300, update)
+# run timer
+thread = RepeatEvery(30, update)
 print("starting")
 thread.start()
