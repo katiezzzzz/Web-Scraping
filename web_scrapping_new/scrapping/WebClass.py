@@ -3,6 +3,8 @@ import requests
 import os.path
 import pickle
 
+my_path = "C:/Users/kzeng/PycharmProjects/python_training/web_scrapping_new/cache/"
+
 class WebClass:
 
     def __init__(self,URL, keywords, company, page):
@@ -14,8 +16,8 @@ class WebClass:
 
     def initializeCache(self):
         # extract text from the website and convert all to lower case
-        if os.path.exists('cache ' + str(self.companypage) + '.p'):
-            self.cache = pickle.load(open(('cache ' + str(self.companypage) + '.p'), 'rb'))
+        if os.path.exists(my_path + str(self.companypage) + '.p'):
+            self.cache = pickle.load(open((my_path + str(self.companypage) + '.p'), 'rb'))
         else:
             soup = BeautifulSoup(requests.get(self.URL).text, 'html.parser')
             self.cache = soup.get_text().lower()
@@ -23,7 +25,8 @@ class WebClass:
             self.cache = self.cache.split('\n')
             # generate initial cache file
             # check if the text file can be re-written
-            pickle.dump(self.cache,open(('cache ' + str(self.companypage) + '.p'), 'wb'))
+            with open ((my_path + str(self.companypage) + '.p'),'wb') as f:
+                pickle.dump(self.cache,f)
 
     def generateCache(self):
         self.old_line = []
@@ -52,7 +55,8 @@ class WebClass:
                         self.new_line.append(line + new_line)
                 new_line = line
         self.cache = new
-        pickle.dump(self.cache, open(('cache ' + str(self.companypage) + '.p'), 'wb'))
+        with open((my_path + str(self.companypage) + '.p'), 'wb') as f:
+            pickle.dump(self.cache, f)
 
     def alert(self):
         self.new_line.reverse()
