@@ -1,0 +1,175 @@
+'''
+create a class with the following functions:
+1. initializeCache - extract existing cache files or write new cache file
+2, generateCache - generate info inside the class
+1. compare - compare the updated website to original text file
+3. alert - search for keywords in the compared file and send alerts
+then update every 5 min
+'''
+
+from bs4 import BeautifulSoup
+import requests
+import threading
+import time
+import os.path
+import smtplib
+import csv
+from datescraper import DateScraper
+import urllib
+import re
+
+def convert(data):
+    dateformat = re.compile('\r\n .*:.*\r\n.*')
+
+    newdata = []
+    for date in data:
+        line = ["","",""]
+        for entry in date[1]:
+            if dateformat.match(entry) is not None:
+                newdata.append(line)
+                line = [date[0], entry, ""]
+            else:
+                line[2] = line[2] + entry
+        newdata.append(line)
+       # newdata.remove([""])
+
+    return (newdata)
+
+# lists of keywords and websites
+keywords_spanish = ['santander','amadeus','banco bilbao vizcava','bbva','iberdrola','inditex',
+                    'industria de diseno textil','telefonica']
+keywords_rest = ['dividend','amount','agm','annual general meeting','ex-dividend','ex-dividend date',
+                 'payment date','results']
+website_spanish = ['https://www.cnmv.es/portal/HR/HRAldia.aspx?lang=en']
+websites_rest = ['https://www.societegenerale.com/en/investors',
+                'https://www.societegenerale.com/en/measuring-our-performance/information-and-publications/dividend',
+                'https://www.societegenerale.com/en/about-us/governance/annual-general-meeting',
+                'https://www.daimler.com/investors/share/dividend/',
+                'https://www.daimler.com/investors/events/annual-meetings/',
+                'https://www.daimler.com/investors/events/financial-calendar/',
+                'https://www.daimler.com/investors/reports-news/',
+                'https://www.telekom.com/en/investor-relations',
+                'https://www.telekom.com/en/investor-relations/publications/financial-results#571070',
+                'https://www.telekom.com/en/investor-relations/publications',
+                'https://www.telekom.com/en/investor-relations/share/dividend',
+                'https://www.telekom.com/en/investor-relations/service/financial-calendar',
+                'https://www.investor.bayer.de/en/reports/annual-reports/overview/',
+                'https://www.investor.bayer.de/en/events/calendar/',
+                'https://www.investor.bayer.de/en/stock/dividends/',
+                'https://invest.bnpparibas.com/en/results',
+                'https://invest.bnpparibas.com/en/bnp-paribas-share/dividend',
+                'https://invest.bnpparibas.com/en/calendar',
+                'https://www.group.intesasanpaolo.com/scriptIsir0/si09/investor_relations/eng_wp_investor_relations.jsp#/investor_relations/eng_wp_investor_relations.jsp',
+                'https://www.group.intesasanpaolo.com/scriptIsir0/si09/investor_relations/eng_wp_investor_relations.jsp#/investor_relations/eng_financial_calendar.jsp',
+                'https://www.group.intesasanpaolo.com/scriptIsir0/si09/investor_relations/eng_wp_investor_relations.jsp#/investor_relations/eng_bilanci_relazioni.jsp',
+                'https://www.group.intesasanpaolo.com/scriptIsir0/si09/investor_relations/eng_wp_investor_relations.jsp#/investor_relations/eng_azioni_dividendi.jsp']
+
+class WebClass:
+
+    def __init__(self,URL, keywords, company, page):
+        #cache companypage is unique for each website
+        self.company = company
+        self.companypage = (company + page)
+        self.URL = URL
+        self.keywords = keywords
+
+    '''
+    def initializeCache(self):
+        # extract text from the website and convert all to lower case
+        if os.path.exists(self.companypage + '.p'):
+            self.cache = pickle.load(open((self.companypage + '.p'), 'rb'))
+        else:
+            soup = BeautifulSoup(requests.get(self.URL).text, 'html.parser')
+            self.cache = soup.get_text().lower()
+            self.cache = self.cache.replace('\n\n', ' ')
+            self.cache = self.cache.split('\n')
+            # generate initial cache file
+            # check if the text file can be re-written
+            pickle.dump(self.cache,open((self.companypage + '.p'), 'wb'))
+    '''
+
+    def initializeCache(self):
+        if os.path.exists("WebsiteData/" + self.companypage + ".html"):
+            self.cache = open("WebsiteData/" + self.companypage + ".html")
+        else:
+            self.cache = urllib.request.urlretrieve(self.URL, "WebsiteData/" + self.companypage + ".html")
+
+    def generateCache(self):
+        self.hits = []
+        self.scraper = DateScraper()
+        self.data = self.scraper.parseFile("WebsiteData/" + self.companypage + ".html")
+        self.newdata = convert(self.data)
+        for entry in self.newdata:
+            for word in self.keywords:
+                if word in entry[1]:
+                    self.hits.append(entry)
+
+    def compare(self):
+        self.compare_hits = []
+        new = urllib.request.urlretrieve(self.URL, "WebsiteData/new" + self.companypage + ".html")
+        self.compare_scraper = DateScraper()
+        self.compare_data = self.compare_scraper.parseFile("WebsiteData/new" + self.companypage + ".html")
+        self.compare_newdata = convert(self.compare_data)
+        for entry in self.compare_newdata:
+            for word in self.keywords:
+                if word in entry[1]:
+                    self.compare_hits.append(entry)
+        self.cache = new
+
+    def alert(self):
+        self.compare_hits.reverse()
+        for line in self.hits:
+            if line in self.compare_hits:
+                self.compare_hits.remove(line)
+        if self.compare_hits:
+            self.compare_hits.reverse()
+            print(self.URL)
+        for line in self.compare_hits:
+            print(line)
+
+    def sendEmail(self):
+        mailserver = smtplib.SMTP('smtp.office365.com', 587)
+        mailserver.ehlo()
+        mailserver.starttls()
+        mailserver.login('Katie.Zeng@mako.com', 'password')
+        mailserver.sendmail('Katie.Zeng@mako.com', 'Jane.Jiang@mako.com', 'python email')
+        mailserver.quit()
+
+# timer
+class RepeatEvery(threading.Thread):
+    def __init__(self, interval, func, *args):
+        threading.Thread.__init__(self)
+        self.interval = interval  # seconds between calls
+        self.func = func          # function to call
+        self.args = args          # optional positional argument(s) for call
+        self.runable = True
+    def run(self):
+        while self.runable:
+            self.func(*self.args)
+            time.sleep(self.interval)
+    def stop(self):
+        self.runable = False
+
+# initialize
+def update():
+    if os.path.exists('H:\Documents\Directory.csv'):
+        print("Start")
+        with open('H:\Documents\Directory.csv') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                company = str(row[0])
+                URL = str(row[1])
+                page = str(row[2])
+                keywords = row[3].split(",")
+                scrap = WebClass(URL, keywords, company, page)
+                scrap.initializeCache()
+                scrap.generateCache()
+                scrap.compare()
+                scrap.alert()
+    else:
+        print("Please upload directory")
+
+# run timer
+thread = RepeatEvery(10, update)
+print("starting")
+thread.start()
