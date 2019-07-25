@@ -23,27 +23,17 @@ class WebClass:
             for script in soup(["script", "style"]):
                 script.decompose()
             self.cache = soup.get_text().lower()
-            # break into lines and remove leading and trailing space on each
-            lines = (line.strip() for line in self.cache.splitlines())
-            # break multi-headlines into a line each
-            chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
-            # drop blank lines
-            self.cache = '\n'.join(chunk for chunk in chunks if chunk)
-            #self.cache = self.cache.replace('\n\n', ' ')
-            #self.cache = self.cache.split('\n')
-            # generate initial cache file
-            # check if the text file can be re-written
+            self.cache = self.cache.replace('\n\n', ' ')
+            self.cache = self.cache.split('\n')
             with open ((my_path + str(self.companypage) + '.p'),'wb') as f:
                 pickle.dump(self.cache,f)
 
     def generateCache(self):
         self.old_line = []
-        old_line = ""
         for line in self.cache:
             for word in self.keywords:
                 if word in line:
-                    self.old_line.append(line + old_line)
-            old_line = line
+                    self.old_line.append(line)
 
     def compare(self):
         self.new_line = []
@@ -52,21 +42,16 @@ class WebClass:
         for script in newsoup(["script", "style"]):
             script.decompose()
         new = newsoup.get_text().lower()
-        lines = (line.strip() for line in new.splitlines())
-        chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
-        new = '\n'.join(chunk for chunk in chunks if chunk)
-        #new = new.replace('\n\n', ' ')
-        #new = new.split('\n')
+        new = new.replace('\n\n', ' ')
+        new = new.split('\n')
         if new == self.cache:
             print("No new updates at " + self.companypage)
         else:
             print("New updates at " + self.companypage)
-            new_line = ""
             for line in new:
                 for word in self.keywords:
                     if word in line:
-                        self.new_line.append(line + new_line)
-                new_line = line
+                        self.new_line.append(line)
         self.cache = new
         with open((my_path + str(self.companypage) + '.p'), 'wb') as f:
             pickle.dump(self.cache, f)
@@ -78,7 +63,7 @@ class WebClass:
                 self.new_line.remove(line)
         if self.new_line:
             self.new_line.reverse()
-            self.message = ["New updates at " + self.companypage + ":" + self.URL + '\r\n']
+            self.message = ["New updates at " + self.companypage + ':' + '\r\n' + self.URL + '\r\n']
             print(self.URL)
             for line in self.new_line:
                 print(line)
