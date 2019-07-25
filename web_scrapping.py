@@ -56,7 +56,7 @@ class WebClass:
 
     def initializeCache(self):
         # extract text from the website and convert all to lower case
-        if os.path.exists('cache' + str(self.companypage) + '.p'):
+        if os.path.exists(self.companypage + '.p'):
             self.cache = pickle.load(open((self.companypage + '.p'), 'rb'))
         else:
             soup = BeautifulSoup(requests.get(self.URL).text, 'html.parser')
