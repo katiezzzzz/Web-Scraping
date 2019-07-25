@@ -9,6 +9,7 @@ then update every 5 min
 
 import os.path
 import csv
+import warnings
 
 from scrapping.send_mail import SendEmail
 from scrapping.Timer import RepeatEvery
@@ -41,7 +42,7 @@ def update():
                 mail = SendEmail()
                 mail.send('Katie.Zeng@mako.com',message)
     else:
-        print("Please upload directory")
+        warnings.warn("Please upload the directory")
 
 if __name__ == "__main__":
     # run timer
