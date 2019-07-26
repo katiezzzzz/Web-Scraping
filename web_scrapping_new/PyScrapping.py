@@ -45,7 +45,6 @@ def update():
                 pass
             else:
                 message = ''.join(message)
-                message = '\r\n' + message
                 #mail = SendEmail()
                 #mail.send('Katie.Zeng@mako.com,Jane.Jiang@mako.com',message)
     else:
