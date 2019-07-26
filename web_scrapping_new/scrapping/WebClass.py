@@ -2,7 +2,6 @@ from bs4 import BeautifulSoup
 import requests
 import os.path
 import pickle
-import urllib.request
 import warnings
 
 my_path = "C:/Users/kzeng/PycharmProjects/python_training/web_scraping/cache/"
